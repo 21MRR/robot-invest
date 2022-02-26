@@ -1,17 +1,20 @@
 import React, { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
-import { dLogin } from "../../services/AuthService.js";
+import { dLogin } from "../../services/AuthService";
 
 function Login() {
   const hystory = useHistory();
-  const [email, setEmail] = useState(" ");
-  const [password, setPassword] = useState(" ");
-  const [error, setError] = useState(" ");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   function onChangeInput(event) {
       if(event.target.id === 'email')
+
         setEmail(event.target.value);
+
       else
+
       setPassword(event.target.value);
     
   }
@@ -19,16 +22,20 @@ function Login() {
   
 
   function onSubmit(event) {
+
     event.preventDefault();
+    
     dLogin(email,password)
-        .then(isValid =>{
-            if (isValid) 
-                hystory.push("/settings");
+        .then(response => {
+            if (response) 
+            localStorage.setItem('token', response.token);
+                hystory.push('/settings');
               
         })
         .catch(err =>{
-            setError(err);
-
+        console.error(err);
+        setError(`Invalid user and/or password!`);
+    
         })
     
   }
@@ -66,8 +73,8 @@ function Login() {
                   width={64}
                 />
               </div>
-              <div class="text-center text-md-center mb-4 mt-md-0">
-                <h1 class="mb-0 h3">Sign in to our platform</h1>
+              <div className="text-center text-md-center mb-4 mt-md-0">
+                <h1 className="mb-0 h3">Sign in to our platform</h1>
               </div>
               <form action="#" className="mt-4" onSubmit={onSubmit}>
                 <div className="form-group mb-4">
@@ -107,9 +114,9 @@ function Login() {
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          fill-rule="evenodd"
+                          fillRule="evenodd"
                           d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                          clip-rule="evenodd"
+                          clipRule="evenodd"
                         ></path>
                       </svg>
                     </span>
@@ -151,8 +158,8 @@ function Login() {
                   </button>
                   </div>
                   {
-                    error?
-                    <div className="alert alert-light mt-2">{error}</div>
+                    error ?
+                    <div className="alert alert-danger mt-2">{error}</div>
                     : <React.Fragment></React.Fragment>
                 }
               </form>
@@ -163,4 +170,5 @@ function Login() {
     </main>
   );
 }
+
 export default Login;
