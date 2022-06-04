@@ -1,10 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import { getSettings } from '../../services/SettingsService';
+import React, { useEffect, useState, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
+import { getSettings, updateSettigs } from '../../services/SettingsService';
 import  Menu  from '../../components/Menu/Menu';
 
 
 function Settings(){
+
+    const inputEmail = useRef('');
+    const inputNewPassword = useRef('');
+    const inputConfirmPassword = useRef('');
+    const inputApiUrl = useRef('');
+    const inputAcessKey = useRef('');
+    const inputSecretKey = useRef('');
 
     const history = useHistory();
 
@@ -13,21 +20,15 @@ function Settings(){
     const [success, setSuccess ] = useState('');
 
 
-    const [settings, setSettings] = useState({
-
-        email: '',
-        apiUrl: '',
-        accessKey: '',
-        keySecret: ''
-
-    })
-
+    
     useEffect(() => {
         const token = localStorage.getItem("token");
 
         getSettings(token)
-           .then(response => {
-               setSettings(response);
+           .then(settings => {
+              inputEmail.current.value = settings.email;
+              inputApiUrl.current.value = settings.apiUrl;
+              inputAcessKey.current.value = settings.acessKey; 
 
            })
            .catch(err => {
@@ -42,6 +43,45 @@ function Settings(){
            })
 
     }, [])
+
+    function onFormSubmit(event){
+        event.preventDefault();
+
+        if((inputNewPassword.current.value || inputConfirmPassword.current.value)
+        && inputNewPassword.current.value !== inputConfirmPassword.current.value)
+            return setError(" O campo de alteração da senha e confirmação tem que ser igual ! ");
+        
+
+        const token = localStorage.getItem('token');
+        updateSettigs({
+            email: inputEmail.current.value,
+            password: inputNewPassword.current.value ? inputNewPassword.current.value : null,
+            apiUrl: inputApiUrl.current.value,
+            acessKey: inputAcessKey.current.value,
+            secretKey: inputSecretKey.current.value ? inputSecretKey.current.value : null,
+
+        },token)
+           .then(result =>{
+             if(result){
+                setError('');
+                setSuccess('Atualizado com sucesso !');
+                inputSecretKey.current.value = '';
+                inputNewPassword.current.value = '';
+                inputConfirmPassword.current.value = '';
+
+             }else{
+                setSuccess('');
+                setError('Não foi possível atualizar !');
+            }
+        })
+        .catch(error =>{
+            setSuccess('');
+            console.error(error.message);
+            setError(`Não foi possível atualizar !`);
+
+        })
+
+    }
 
     
 
@@ -64,7 +104,7 @@ function Settings(){
                                     <div className="col-md-6 mb-3">
                                         <div className="form-group">
                                             <label htmlFor="email">Email</label>
-                                            <input  className="form-control" id="email" type="email" placeholder="maurorezende2012@gmail.com" />
+                                            <input ref={inputEmail}  className="form-control" id="email" type="email" placeholder="maurorezende2012@gmail.com" />
                                         </div>
                                     </div>
                                 </div>
@@ -72,13 +112,13 @@ function Settings(){
                                     <div className="col-md-6 mb-3">
                                         <div>
                                             <label htmlFor="newPassword">New Password</label>
-                                            <input  className="form-control" id="newPassword" type="password" placeholder="Enter your new password" />
+                                            <input ref={inputNewPassword}  className="form-control" id="newPassword" type="password" placeholder="Enter your new password" />
                                         </div>
                                     </div>
                                     <div className="col-md-6 mb-3">
                                         <div>
                                             <label htmlFor="confirmPassword">Confirm Password</label>
-                                            <input className="form-control" id="confirmPassword" type="password" placeholder="Your new password again" />
+                                            <input ref={inputConfirmPassword} className="form-control" id="confirmPassword" type="password" placeholder="Your new password again" />
                                         </div>
                                     </div>
                                 </div>
@@ -87,7 +127,7 @@ function Settings(){
                                     <div className="col-sm-12 mb-3">
                                         <div className="form-group">
                                             <label htmlFor="email">API URL</label>
-                                            <input  className="form-control" id="apiUrl" type="text" placeholder="Your API URL" />
+                                            <input ref={inputApiUrl}  className="form-control" id="apiUrl" type="text" placeholder="Your API URL" />
                                         </div>
                                     </div>
                                 </div>
@@ -95,7 +135,7 @@ function Settings(){
                                     <div className="col-sm-12 mb-3">
                                         <div className="form-group">
                                             <label htmlFor="email">Access Key</label>
-                                            <input className="form-control" id="accessKey" type="text" placeholder="Your access key" />
+                                            <input ref={inputAcessKey} className="form-control" id="accessKey" type="text" placeholder="Your access key" />
                                         </div>
                                     </div>
                                 </div>
@@ -103,14 +143,14 @@ function Settings(){
                                     <div className="col-sm-12 mb-3">
                                         <div className="form-group">
                                             <label htmlFor="email">Secret Key</label>
-                                            <input  className="form-control" id="accessKey" type="password" placeholder="Your secret key" />
+                                            <input ref={inputSecretKey}  className="form-control" id="accessKey" type="password" placeholder="Your secret key" />
                                         </div>
                                     </div>
                                 </div>
                                 <div className="row">
                                     <div className="d-flex justify-content-between flex-wrap flex-md-nowrap">
                                         <div className="col-sm-3">
-                                            <button className="btn btn-gray-800 mt-2 animate-up-2" type="submit" >Save all</button>
+                                            <button className="btn btn-gray-800 mt-2 animate-up-2" type="submit" onClick={onFormSubmit}>Save all</button>
                                         </div>
                                         {
                                             error
